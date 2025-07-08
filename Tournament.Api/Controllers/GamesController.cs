@@ -2,7 +2,9 @@
 using Microsoft.AspNetCore.JsonPatch;
 using Microsoft.AspNetCore.Mvc;
 using Service.Contracts;
-using Tournament.Core.Dto;
+using Tournament.Core.Request;
+using Tournament.Shared.Dto;
+
 
 
 [Route("api/tournaments/{tournamentId}/games")]
@@ -19,13 +21,13 @@ public class GameController : ControllerBase
     [HttpGet]
     [ProducesResponseType(typeof(PagedResult<GameDto>), StatusCodes.Status200OK)]
     public async Task<ActionResult<IEnumerable<GameDto>>> GetGames(
-        int tournamentId,
+        [FromRoute] int tournamentId,
         [FromQuery] int page = 1,
         [FromQuery] int pageSize = 10
         )
     {
-        Console.WriteLine(">>> GetGames endpoint was hit");
-        var pagedResult = await _serviceManager.GameService.GetAllAsync(tournamentId, trackChanges:false, page, pageSize);
+        var request = new PagedRequest {Page = page, PageSize = pageSize };
+        var pagedResult = await _serviceManager.GameService.GetAllAsync(request, tournamentId, trackChanges:false, page, pageSize);
         if (!pagedResult.Items.Any())
         {
             return NotFound();
@@ -136,9 +138,11 @@ public class GameController : ControllerBase
         if (string.IsNullOrWhiteSpace(title) && !date.HasValue)
             return BadRequest("At least one filter (title or date) must be provided.");
 
-        var pagedResult = await _serviceManager.GameService.SearchAsync(title, date, trackChanges: false);
+        var request = new PagedRequest { Page = page, PageSize = pageSize };
 
-        if (pagedResult == null)
+        var pagedResult = await _serviceManager.GameService.SearchAsync(request, title, date, trackChanges: false);
+
+        if (!pagedResult.Items.Any())
         {
             return NotFound();
         }

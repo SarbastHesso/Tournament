@@ -6,9 +6,11 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using Tournament.Core.Dto;
 using Tournament.Core.Entities;
 using Tournament.Core.Interfaces;
+using Tournament.Core.Request;
+using Tournament.Shared.Dto;
+
 
 namespace Tournament.Services;
 
@@ -23,29 +25,23 @@ public class GameService: IGameService
         _mapper = mapper;
     }
 
-    public async Task<PagedResult<GameDto>> GetAllAsync(int? tournamenId, bool trackChanges= false, int page = 1, int pageSize = 10)
+    public async Task<PagedResult<GameDto>> GetAllAsync(PagedRequest request, int? tournamenId, bool trackChanges= false, int page = 1, int pageSize = 10)
     {
-        if (pageSize > 100)
+        if (request.PageSize > 100)
         {
-            pageSize= 100;
+            request.PageSize = 100;
         }
 
-        var games = await _unitOfWork.GameRepository.GetAllAsync(tournamenId, trackChanges);
+        var pagedGames = await _unitOfWork.GameRepository.GetAllAsync(request, tournamenId, trackChanges);
 
-        var totalItems = games.Count();
-
-        var pagedGames = games
-            .Skip((page - 1) * pageSize)
-            .Take(pageSize);
-
-        var dtos = _mapper.Map<IEnumerable<GameDto>>(pagedGames);
+        var itemsDto = _mapper.Map<IEnumerable<GameDto>>(pagedGames.Items);
 
         return new PagedResult<GameDto>
         {
-            Items = dtos,
-            TotalItems = totalItems,
-            PageSize = pageSize,
-            CurrentPage = page
+            Items = itemsDto,
+            TotalItems = pagedGames.TotalItems,
+            PageSize = pagedGames.PageSize,
+            CurrentPage = pagedGames.CurrentPage
         };
     }
 
@@ -110,28 +106,22 @@ public class GameService: IGameService
         await _unitOfWork.CompleteAsync();
     }
 
-    public async Task<PagedResult<GameDto>> SearchAsync(string? title, DateTime? date, bool trackChanges = false, int page = 1, int pageSize = 10)
+    public async Task<PagedResult<GameDto>> SearchAsync(PagedRequest request, string? title, DateTime? date, bool trackChanges = false, int page = 1, int pageSize = 10)
     {
-        if (pageSize > 100)
+        if (request.PageSize > 100)
         {
-            pageSize = 100;
+            request.PageSize = 100;
         }
-        var tournaments = await _unitOfWork.GameRepository.SearchAsync(title, date, trackChanges);
+        var pagedGames = await _unitOfWork.GameRepository.SearchAsync(request, title, date, trackChanges);
 
-        var totalItems = tournaments.Count();
-
-        var pagedTournaments = tournaments
-            .Skip((page - 1) * pageSize)
-            .Take(pageSize);
-
-        var dtos = _mapper.Map<IEnumerable<GameDto>>(pagedTournaments);
+        var itemsDto = _mapper.Map<IEnumerable<GameDto>>(pagedGames.Items);
 
         return new PagedResult<GameDto>
         {
-            Items = dtos,
-            TotalItems = totalItems,
-            PageSize = pageSize,
-            CurrentPage = page
+            Items = itemsDto,
+            TotalItems = pagedGames.TotalItems,
+            PageSize = pagedGames.PageSize,
+            CurrentPage = pagedGames.CurrentPage
         };
 
     }

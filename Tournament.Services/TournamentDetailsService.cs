@@ -5,10 +5,11 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using Tournament.Core.Dto;
 using Tournament.Core.Entities;
 using Tournament.Core.Interfaces;
 using Microsoft.AspNetCore.JsonPatch;
+using Tournament.Shared.Dto;
+using Tournament.Core.Request;
 
 namespace Tournament.Services;
 
@@ -22,29 +23,20 @@ public class TournamentDetailsService: ITournamentDetailsService
         _mapper = mapper;   
     }
 
-    public async Task<PagedResult<TournamentDetailsDto>> GetAllAsync(bool includeGames = false, bool trackChanges = false, int page = 1, int pageSize = 10)
+    public async Task<PagedResult<TournamentDetailsDto>> GetAllAsync(PagedRequest request, bool includeGames = false, bool trackChanges = false)
     {
-        if ( pageSize > 100)
+        if (request.PageSize > 100)
         {
-            pageSize = 100;
+            request.PageSize = 100;
         }
-
-        var tournaments = await _unitOfWork.TournamentDetailsRepository.GetAllAsync(includeGames, trackChanges);
-
-        var totalItems = tournaments.Count();
-
-        var pagedTournaments = tournaments
-            .Skip((page - 1) * pageSize)
-            .Take(pageSize);
-
-        var dtos = _mapper.Map<IEnumerable<TournamentDetailsDto>>(pagedTournaments);
-
-        return new PagedResult<TournamentDetailsDto>
+        var pagedTournaments = await _unitOfWork.TournamentDetailsRepository.GetAllAsync(request, includeGames, trackChanges);
+        var itemsDto = _mapper.Map<IEnumerable<TournamentDetailsDto>>(pagedTournaments.Items);
+        return new PagedResult<TournamentDetailsDto>()
         {
-            Items = dtos,
-            TotalItems = totalItems,
-            PageSize = pageSize,
-            CurrentPage = page
+            Items = itemsDto,
+            TotalItems = pagedTournaments.TotalItems,
+            PageSize = pagedTournaments.PageSize,
+            CurrentPage = pagedTournaments.CurrentPage
         };
     }
 
@@ -110,28 +102,22 @@ public class TournamentDetailsService: ITournamentDetailsService
         await _unitOfWork.CompleteAsync();
     }
 
-    public async Task<PagedResult<TournamentDetailsDto>> SearchAsync(string? title, DateTime? date, bool includeGames = false, bool trackChanges = false, int page = 1, int pageSize = 10)
-    { 
-        if (pageSize > 100)
+    public async Task<PagedResult<TournamentDetailsDto>> SearchAsync(PagedRequest request, string? title, DateTime? date, bool includeGames = false, bool trackChanges = false)
+    {
+        if (request.PageSize > 100)
         {
-            pageSize = 100;
+            request.PageSize = 100;
         }
-        var tournaments = await _unitOfWork.TournamentDetailsRepository.SearchAsync(title, date, includeGames, trackChanges);
+        var pagedTournaments = await _unitOfWork.TournamentDetailsRepository.SearchAsync(request, title, date, includeGames, trackChanges);
 
-        var totalItems = tournaments.Count();
-
-        var pagedTournaments = tournaments
-            .Skip((page - 1) * pageSize)
-            .Take(pageSize);
-
-        var dtos = _mapper.Map<IEnumerable<TournamentDetailsDto>>(pagedTournaments);
+        var itemsDto = _mapper.Map<IEnumerable<TournamentDetailsDto>>(pagedTournaments.Items);
 
         return new PagedResult<TournamentDetailsDto>
         {
-            Items = dtos,
-            TotalItems = totalItems,
-            PageSize = pageSize,
-            CurrentPage = page
+            Items = itemsDto,
+            TotalItems = pagedTournaments.TotalItems,
+            PageSize = pagedTournaments.PageSize,
+            CurrentPage = pagedTournaments.CurrentPage        
         };
 
     }

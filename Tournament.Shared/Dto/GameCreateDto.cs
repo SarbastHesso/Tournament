@@ -5,13 +5,19 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Tournament.Core.Dto
+namespace Tournament.Shared.Dto
 {
-    public record GameDto
+    public record GameCreateDto
     {
-        public int Id { get; init; }
+        [Required]
+        [StringLength(100, MinimumLength = 3)]
         public string Title { get; init; }
+
+        [Required]
         public DateTime Time { get; init; }
+
+        [Required]
         public int TournamentId { get; init; }
+
     }
 }

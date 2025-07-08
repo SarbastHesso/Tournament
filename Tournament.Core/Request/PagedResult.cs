@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Tournament.Core.Dto;
+namespace Tournament.Core.Request;
 
 public class PagedResult<T>
 {

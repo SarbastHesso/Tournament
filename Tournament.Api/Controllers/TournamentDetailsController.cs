@@ -3,7 +3,8 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.JsonPatch;
 using Microsoft.AspNetCore.Mvc;
 using Service.Contracts;
-using Tournament.Core.Dto;
+using Tournament.Core.Request;
+using Tournament.Shared.Dto;
 
 
 namespace Tournament.Api.Controllers
@@ -23,17 +24,19 @@ namespace Tournament.Api.Controllers
         [HttpGet]
         [ProducesResponseType(typeof(PagedResult<TournamentDetailsDto>), StatusCodes.Status200OK)]
         public async Task<ActionResult<PagedResult<TournamentDetailsDto>>> GetAllTournamentDetails(
-            [FromQuery] bool includeGames,
             [FromQuery] int page = 1,
-            [FromQuery] int pageSize = 10)
+            [FromQuery] int pageSize = 10,
+            [FromQuery] bool includeGames = false
+            )
         {
-            var pagedResult = await _serviceManager.TournamentDetailsService.GetAllAsync(includeGames, trackChanges: false, page, pageSize);
+            var request = new PagedRequest { Page = page, PageSize = pageSize };
+            var pagedResult = await _serviceManager.TournamentDetailsService.GetAllAsync(request, includeGames, trackChanges: false);
             if (!pagedResult.Items.Any())
             {
                 return NotFound();
             }
 
-            return Ok(pagedResult);
+            return Ok(pagedResult.Items);
         }
 
         // GET: api/TournamentDetails/5
@@ -144,8 +147,8 @@ namespace Tournament.Api.Controllers
         {
             if (string.IsNullOrWhiteSpace(title) && !date.HasValue)
                 return BadRequest("At least one filter (title or date) must be provided.");
-
-            var pagedResult = await _serviceManager.TournamentDetailsService.SearchAsync(title, date, includeGames, trackChanges: false);
+            var request = new PagedRequest { Page = page, PageSize = pageSize };
+            var pagedResult = await _serviceManager.TournamentDetailsService.SearchAsync(request, title, date, includeGames, trackChanges: false);
 
             if (pagedResult == null)
             {

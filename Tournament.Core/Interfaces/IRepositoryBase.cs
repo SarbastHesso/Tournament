@@ -5,6 +5,7 @@ using System.Linq.Expressions;
 using System.Text;
 using System.Threading.Tasks;
 using Tournament.Core.Entities;
+using Tournament.Core.Request;
 
 namespace Tournament.Core.Interfaces
 {
@@ -15,5 +16,6 @@ namespace Tournament.Core.Interfaces
         void Create(T entity);
         void Update(T entity);
         void Delete(T entity);
+        Task<PagedResult<T>> GetPagedAsync(IQueryable<T> query, int page, int pageSize);
     }
 }
