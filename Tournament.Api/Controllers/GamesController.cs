@@ -2,14 +2,16 @@
 using Microsoft.AspNetCore.JsonPatch;
 using Microsoft.AspNetCore.Mvc;
 using Service.Contracts;
+using Tournament.Api.Controllers;
 using Tournament.Core.Request;
+using Tournament.Core.Responses;
 using Tournament.Shared.Dto;
 
 
 
 [Route("api/tournaments/{tournamentId}/games")]
 [ApiController]
-public class GameController : ControllerBase
+public class GameController : ApiControllerBase
 {
     private readonly IServiceManager _serviceManager;
 
@@ -41,11 +43,13 @@ public class GameController : ControllerBase
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult<GameDto>> GetGame(int id)
     {
-        var gameDto = await _serviceManager.GameService.GetByIdAsync(id, trackChanges: false);
-        if (gameDto == null)
-            return NotFound();
+        //var gameDto = await _serviceManager.GameService.GetByIdAsync(id, trackChanges: false);
+        ApiBaseResponse response = await _serviceManager.GameService.GetByIdAsync(id, trackChanges: false);
+        return response.Success ? Ok(response.GetOkResult<GameDto>()) : ProcessError(response);
+        //if (gameDto == null)
+        //    return NotFound();
 
-        return Ok(gameDto);
+        //return Ok(gameDto);
     }
 
 

@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 using Tournament.Core.Entities;
 using Tournament.Core.Interfaces;
 using Tournament.Core.Request;
+using Tournament.Core.Responses;
 using Tournament.Shared.Dto;
 
 
@@ -45,15 +46,19 @@ public class GameService: IGameService
         };
     }
 
-    public async Task<GameDto> GetByIdAsync(int id, bool trackChanges=false)
+    public async Task<ApiBaseResponse> GetByIdAsync(int id, bool trackChanges=false)
     {
         var game = await _unitOfWork.GameRepository.GetByIdAsync(id, trackChanges);
 
-        if (game == null) throw new KeyNotFoundException($"Game with id {id} not found");
+        //if (game == null) throw new KeyNotFoundException($"Game with id {id} not found");
+        if (game == null)
+        {
+            return new GameNotFoundResponse(id);
+        }
 
         var dto = _mapper.Map<GameDto>(game);
 
-        return dto;
+        return new ApiOkResponse<GameDto>(dto);
     }
 
     async Task<GameDto> IGameService.CreateAsync(GameCreateDto createDto)

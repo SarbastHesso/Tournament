@@ -10,6 +10,7 @@ using Tournament.Core.Interfaces;
 using Microsoft.AspNetCore.JsonPatch;
 using Tournament.Shared.Dto;
 using Tournament.Core.Request;
+using Tournament.Core.Exceptions;
 
 namespace Tournament.Services;
 
@@ -44,7 +45,7 @@ public class TournamentDetailsService: ITournamentDetailsService
     {
         var tournament = await _unitOfWork.TournamentDetailsRepository.GetByIdAsync(id, includeGames, trackChanges);
         if (tournament == null)
-            throw new KeyNotFoundException($"Tournament with id {id} not found");
+            throw new TournamentNotFoundException(id);
 
         var dto = _mapper.Map<TournamentDetailsDto>(tournament);
         return dto;
