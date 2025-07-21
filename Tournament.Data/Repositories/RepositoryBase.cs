@@ -10,6 +10,7 @@ using Tournament.Core.Request;
 using Tournament.Data.Data;
 using Tournament.Shared.Dto;
 
+
 namespace Tournament.Data.Repositories;
 
 public class RepositoryBase<T> : IRepositoryBase<T> where T : class

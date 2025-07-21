@@ -11,6 +11,7 @@ using Tournament.Shared.Dto;
 using Tournament.Core.Request;
 using Service.Contracts;
 using Tournament.Tests.TestFixtures;
+using Tournament.Shared.Request;
 
 namespace Tournament.Api.Tests.Controllers
 {

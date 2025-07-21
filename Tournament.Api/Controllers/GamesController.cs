@@ -9,6 +9,7 @@ using Tournament.Shared.Dto;
 
 
 
+
 [Route("api/tournaments/{tournamentId}/games")]
 [ApiController]
 public class GameController : ApiControllerBase

@@ -36,7 +36,7 @@ namespace Tournament.Api.Controllers
                 return NotFound();
             }
 
-            return Ok(pagedResult.Items);
+            return Ok(pagedResult);
         }
 
         // GET: api/TournamentDetails/5

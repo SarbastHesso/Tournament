@@ -8,6 +8,7 @@ using Tournament.Core.Request;
 using Tournament.Shared.Dto;
 
 
+
 namespace Service.Contracts;
 
 public interface ITournamentDetailsService

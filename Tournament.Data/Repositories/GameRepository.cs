@@ -7,6 +7,7 @@ using Tournament.Core.Request;
 using Tournament.Data.Data;
 using Tournament.Data.Repositories;
 
+
 public class GameRepository : RepositoryBase<Game>, IGameRepository
 {
 

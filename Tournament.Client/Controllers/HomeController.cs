@@ -7,109 +7,51 @@ using System.Threading.Tasks;
 using Tournament.Client.Clients;
 using Tournament.Client.Models;
 using Tournament.Shared.Dto;
+using Tournament.Shared.Request;
 
 namespace Tournament.Client.Controllers;
 
 public class HomeController : Controller
 {
-    private HttpClient httpClient;
-    private const string json = "application/json";
     private readonly ITournamentDetailsClient tournamentDetailsClient;
 
     public HomeController(ITournamentDetailsClient tournamentDetailsClient)
     {
-        //httpClient = new HttpClient();
-        //httpClient.BaseAddress = new Uri("https://localhost:7054");
         this.tournamentDetailsClient = tournamentDetailsClient;
     }
 
     public async Task<IActionResult> Index()
     {
-        //var result = await SimpleGetAsync();
-        var getAll = await GetWithRequestMessageAsync();
-        var create = await PostWithRequestMessageAsync();
-        await PatchWithRequestMessageAsync();
+        var pagedTournaments = await tournamentDetailsClient.GetAsync<PagedResult<TournamentDetailsDto>>("api/tournaments");
+        var allTournaments = pagedTournaments.Items;
 
-        return View();
-    }
-
-    //private async Task<IEnumerable<TournamentDetailsDto>> SimpleGetAsync()
-    //{
-    //    var response = await httpClient.GetAsync("api/tournaments");
-    //    response.EnsureSuccessStatusCode();
-
-    //    var res = await response.Content.ReadAsStringAsync();
-    //    var tournaments = JsonSerializer.Deserialize<IEnumerable<TournamentDetailsDto>>(res, new JsonSerializerOptions {PropertyNamingPolicy = JsonNamingPolicy.CamelCase});
-
-    //    return tournaments!;
-    //}
-
-    private async Task<IEnumerable<TournamentDetailsDto>> GetWithRequestMessageAsync()
-    {
-        //var request = new HttpRequestMessage(HttpMethod.Get, "api/tournaments");
-        //request.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue(json));
-
-        //var response = await httpClient.SendAsync(request);
-        //response.EnsureSuccessStatusCode();
-
-        //var res = await response.Content.ReadAsStringAsync();
-        //var result = JsonSerializer.Deserialize<IEnumerable<TournamentDetailsDto>>(res, new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.CamelCase});
-
-        //return result;
-
-        var tournamentDetailsDto = await tournamentDetailsClient.GetAsync<IEnumerable<TournamentDetailsDto>>("api/tournaments");
-        return tournamentDetailsDto;
-    }
-
-    private async Task<TournamentDetailsDto> PostWithRequestMessageAsync()
-    {
-        var request = new HttpRequestMessage(HttpMethod.Post, "api/tournaments");
-        request.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue(json));
-
-        var tournamentDetailsToCreate = new TournamentDetailsCreateDto()
+        // Create a new tournament
+        var created = await tournamentDetailsClient.CreateTournamentAsync(new TournamentDetailsCreateDto
         {
-            //Title = "Axelsson Cup",
-            //StartDate = DateTime.Today,
-        };
+            Title = "Axelsson Cup",
+            StartDate = DateTime.Today
+        });
 
-        if (!string.IsNullOrWhiteSpace(tournamentDetailsToCreate.Title) && tournamentDetailsToCreate.StartDate != null)
+        // Get by ID
+        var fetched = await tournamentDetailsClient.GetByIdAsync(created.Id, includeGames: false);
+
+        // Update tournament
+        await tournamentDetailsClient.UpdateTournamentAsync(fetched.Id, new TournamentDetailsUpdateDto
         {
-            var jsonTournament = JsonSerializer.Serialize(tournamentDetailsToCreate);
+            Title = "Updated Axelsson Cup",
+            StartDate = fetched.StartDate
+        });
 
-            request.Content = new StringContent(jsonTournament);
-            request.Content.Headers.ContentType = new MediaTypeHeaderValue(json);
+        // Patch title
+        await tournamentDetailsClient.PatchTournamentTitleAsync(fetched.Id, "Patched Axelsson Cup");
 
-            var response = await httpClient.SendAsync(request);
-            response.EnsureSuccessStatusCode();
+        // Search tournaments
+        var searchResult = await tournamentDetailsClient.SearchTournamentsAsync("Axelsson", null);
 
-            var res = await response.Content.ReadAsStringAsync();
-            var createdTournament = JsonSerializer.Deserialize<TournamentDetailsDto>(res, new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.CamelCase });
-            var location = response.Headers.Location;
+        // Delete tournament
+        await tournamentDetailsClient.DeleteTournamentAsync(fetched.Id);
 
-            return createdTournament;
-        } else
-        {
-            return null;
-        }
-       
+        return View(allTournaments); // or pass searchResult or any other list to the view
     }
-
-    private async Task PatchWithRequestMessageAsync()
-    {
-        var patchDocument = new JsonPatchDocument<TournamentDetailsUpdateDto>();
-        patchDocument.Replace(t => t.Title, "Aryo");
-
-        var serializedPatchDocument = Newtonsoft.Json.JsonConvert.SerializeObject(patchDocument);
-
-        var request = new HttpRequestMessage(HttpMethod.Patch, "api/tournaments/30");
-        request.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue(json));
-
-        request.Content = new StringContent(serializedPatchDocument);
-        request.Content.Headers.ContentType = new MediaTypeHeaderValue(json);
-
-        var response = await httpClient.SendAsync(request);
-
-        response.EnsureSuccessStatusCode();
-
-    }
+    
 }

@@ -4,6 +4,7 @@ using Tournament.Core.Interfaces;
 using Tournament.Core.Request;
 using Tournament.Data.Data;
 
+
 namespace Tournament.Data.Repositories;
 
 public class TournamentDetailsRepository : RepositoryBase<TournamentDetails>, ITournamentDetailsRepository

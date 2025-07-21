@@ -12,6 +12,7 @@ using Tournament.Shared.Dto;
 using Tournament.Core.Request;
 using Tournament.Core.Exceptions;
 
+
 namespace Tournament.Services;
 
 public class TournamentDetailsService: ITournamentDetailsService
